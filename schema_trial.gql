@@ -1,0 +1,230 @@
+define
+
+################
+## ATTRIBUTES ##
+################
+
+	text sub attribute,
+			datatype string;
+		
+	name sub text;
+
+	industry sub text;
+
+	declaration sub text;
+
+	tag sub text;
+
+        data sub text;
+
+        
+
+###################
+## GENERIC TYPES ##
+###################
+
+###############
+## ELEMENTALS ##
+###############
+
+	token sub entity,
+			key text,
+			plays question-token,
+			plays object-token,
+			plays subject-token,
+			plays qualifier-token;
+
+	celebrity sub entity,
+			key name,
+			has industry;
+			
+	respondent sub entity,
+			key name,
+			has industry,
+			plays answerer;
+			
+			
+	question sub entity,
+			key tag,
+			has text,
+			plays tok-question,
+			plays ob-question,
+			plays qual-question,
+			plays sub-question;
+			
+	description sub entity,
+			key declaration;
+			
+	input sub entity,
+			has text,
+			has tag,
+			plays answer,
+                        plays dpoint;
+		
+	subject sub description,
+			plays subj;
+			
+			
+	object sub description,
+			plays ob;
+
+        classifier sub entity,
+			has text;
+
+        celebrity-clasifer sub classifier;
+  
+
+	qualifier sub description,
+			plays qual;
+			
+
+        possible-value  sub entity,
+			key tag,
+			has text;	  
+	
+		
+#######################
+## Build up questions, elementals ##
+#######################
+
+	token-from-question sub relation,
+	  relates question-token,
+	  relates tok-question;
+	  
+	object-of-question sub relation,
+	  relates ob, 
+	  relates ob-question;
+	  
+	subject-of-question sub relation,
+	  relates subj, 
+	  relates sub-question;	  
+
+	qualifier-of-question sub relation,
+	  relates qual, 
+	  relates qual-question;	  
+	  
+	answer-of sub relation,
+	  relates answer,
+	  relates answerer;
+  
+ 
+ 
+#######################
+## question representative####
+#######################
+
+	token-of-object sub relation,
+		relates object-token,
+		relates ob;
+		
+	token-of-subject sub relation,
+		relates subject-token,
+		relates subj;
+		  
+	token-of-qualifier sub relation,
+		relates qualifier-token,
+		relates qual;
+		 
+
+#######################
+## question builder####
+#######################	
+ 
+ 
+	object-of-question-rule sub rule,
+		
+		when{
+			$toq (tok-question:$q,question-token: $token) isa token-from-question;
+			(ob: $desc,object-token: $token2) isa token-of-object;
+			$token2 has text $dt;
+			$token has  text $qt;	
+			$qt == $dt;
+		}, then{
+			(ob: $desc, ob-question: $q) isa object-of-question;
+		};
+	
+	
+	subject-of-question-rule sub rule,
+		
+		when{
+			$toq (tok-question:$q,question-token: $token) isa token-from-question;
+			(subj: $desc,subject-token: $token2) isa token-of-subject;
+			$token2 has text $dt;
+			$token has  text $qt;	
+			$qt == $dt;
+		}, then{
+			(subj: $desc, sub-question: $q) isa subject-of-question;
+		};
+	
+	qualifier-of-question-rule sub rule,
+		
+		when{
+			$toq (tok-question:$q,question-token: $token) isa token-from-question;
+			(qual: $desc,qualifier-token: $token2) isa token-of-qualifier;
+			$token2 has text $dt;
+			$token has  text $qt;	
+			$qt == $dt;
+		}, then{
+			(qual: $desc, qual-question: $q) isa qualifier-of-question;
+		};
+	
+	
+  
+ ## need to add questions,subject,object,qualifier, question-token relation
+
+ ## need to test answer input tag,text
+ 	interaction sub relation,
+		    relates answerer,
+		    relates answer;
+
+      
+
+
+
+	respondent-db sub relation,
+                    has text,
+		    key tag,      			
+		    relates answerer,
+		    relates subj,
+		    relates qual,
+                    relates dpoint;
+
+		    
+
+ 
+        grow-respondent-rule sub rule,
+		when{
+			$i isa input, has tag $input-tag, has text $option;
+			$q isa question, has tag $q-tag;
+			$q-tag == $input-tag;
+			(answerer: $answerer,answer: $i) isa interaction;
+			(tok-question:$t,question-token: $token) isa token-from-question;
+                        $clf isa classifier, has text $f; 
+			$token has text $filter;
+			$filter != $f;
+			(subj : $subj,sub-question: $q) isa subject-of-question;
+			(qual: $qual,qual-question: $q) isa qualifier-of-question;
+                                               
+		}, then{
+                         	
+			(answerer: $answerer,subj: $subj,qual:$qual,dpoint:$i) isa respondent-db;	
+
+		};
+				
+		        
+       
+                      
+
+
+
+
+
+		
+		
+		
+		
+		
+
+		
+
+

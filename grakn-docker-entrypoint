@@ -1,0 +1,5 @@
+#!/bin/sh
+
+grakn server start
+grakn console --keyspace know --file schema_trial.gql
+tail -f -n +1 $GRAKN_HOME/logs/grakn.log
